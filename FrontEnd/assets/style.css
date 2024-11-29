@@ -106,6 +106,7 @@ section {
   display: block;
 }
 body {
+  background-color: #fffef8; /* Fond beige clair */
   line-height: 1;
 }
 ol,
@@ -168,15 +169,31 @@ nav ul {
   display: flex;
   align-items: center;
   list-style-type: none;
+  gap: 20px;
 }
 nav li {
   padding: 0 10px;
   font-size: 1.2em;
 }
 
+nav li a {
+  text-decoration: none;
+  color: inherit; /* prend la couleur noire */
+}
+
+nav li a.active {
+  font-weight: bold;
+}
+
 li:hover {
   color: #b1663c;
 }
+
+nav li img {
+  width: 24px;
+  height: auto;
+}
+
 #introduction {
   display: flex;
   align-items: center;
@@ -227,15 +244,15 @@ li:hover {
 
 /* Effet au survol */
 #categoryMenu li:hover {
-  background-color: #1d6154; /* Fond vert clair */
-  color: white; /* Texte vert */
+  background-color: #1d6154;
+  color: white;
 }
 
 /* Style pour le bouton actif (sélectionné) */
 #categoryMenu li.active {
-  background-color: #1d6154; /* Fond vert foncé */
-  color: white; /* Texte blanc */
-  border-color: #1d6154; /* Bordure assortie */
+  background-color: #1d6154;
+  color: white;
+  border-color: #1d6154;
 }
 
 .gallery {
@@ -249,6 +266,58 @@ li:hover {
 .gallery img {
   width: 100%;
 }
+
+#login {
+  width: 400px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* Prend toute la hauteur de la page */
+}
+
+#login form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+#login label {
+  width: 100%;
+}
+
+#login input {
+  width: 100%;
+  height: 51px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+#login button {
+  width: 100%;
+  max-width: 179px;
+  height: 36px;
+  background-color: #1d6154;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#login h2 {
+  margin-bottom: 20px;
+}
+
+#login a {
+  color: inherit;
+}
+
 #contact {
   width: 50%;
   margin: auto;
@@ -291,8 +360,228 @@ input[type="submit"] {
   border-radius: 60px;
 }
 
+footer {
+  background-color: #ffffff;
+}
+
 footer nav ul {
   display: flex;
   justify-content: flex-end;
-  margin: 2em;
+  /* margin: 2em; */
+}
+
+/* Style pour masquer un élément */
+.hidden {
+  display: none;
+}
+
+/* Ajout spécifique pour le switch */
+.modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.project-title {
+  display: flex;
+  justify-content: center; /* Aligne horizontalement */
+  align-items: center; /* Aligne verticalement */
+  gap: 20px;
+}
+
+.edit-button {
+  font-size: 14px;
+  color: #000;
+  cursor: pointer;
+}
+
+.edit-button i {
+  font-size: 16px;
+}
+
+/* Modale */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fond semi-transparent */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-gallery {
+  display: grid;
+  grid-template-columns: repeat(5, 76.86px); /* 5 photos par rangée */
+  grid-column-gap: 10px; /* Espacement horizontal entre les photos */
+  grid-row-gap: 30px; /* Espacement vertical entre les rangées */
+  justify-content: center;
+  align-items: start;
+  margin: 80px auto;
+}
+
+.modal-gallery figure {
+  margin: 0; /* Pas de marges inutiles */
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-gallery img {
+  width: 76.86px;
+  height: 102.57px;
+  object-fit: cover; /* Remplit le conteneur sans déformer */
+  display: block;
+}
+
+.modal-divider {
+  width: 420px;
+  height: 1px;
+  background-color: #b3b3b3;
+  margin: 0 auto;
+}
+
+.add-photo-button {
+  width: 237px;
+  height: 36px;
+  background-color: #1d6154;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 20px auto 30px auto; /* Espacement entre le divider et le bouton */
+  display: block;
+}
+
+.close-modal {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  font-size: 15px;
+  cursor: pointer;
+  color: #000;
+}
+
+/* Section principale pour la modale */
+#modalPhoto {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Contenu de la modale */
+.modal-content {
+  max-width: 630px;
+  max-height: 688px;
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative; /* Nécessaire pour positionner la croix */
+}
+
+/* Titre principal */
+.modal-content h3 {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Section d'upload */
+.upload-section {
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  height: 169px;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  box-sizing: border-box;
+  margin: 0 auto; /* Centre horizontalement */
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  height: 100%;
+}
+
+.upload-label i {
+  font-size: 40px;
+  color: #bbb;
+}
+
+.upload-label span {
+  font-size: 14px;
+  color: #333;
+}
+
+.upload-section p {
+  margin-top: -25px;
+  font-size: 10px;
+  color: #444444;
+}
+
+/* Formulaire */
+#addPhotoForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 420px;
+  width: 100%;
+  margin: 40px auto; /* Centre le formulaire horizontalement */
+}
+
+/* Style des labels */
+#addPhotoForm label {
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px; /* Espacement entre le label et le champ */
+}
+
+/* Champs de saisie et menu déroulant */
+#addPhotoForm input,
+#addPhotoForm select {
+  max-width: 420px;
+  width: 100%;
+  height: 51px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f7f7f7;
+  box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+/* Flèche pour revenir à la galerie photo */
+.back-arrow {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
 }

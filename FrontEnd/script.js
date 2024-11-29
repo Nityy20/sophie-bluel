@@ -113,3 +113,220 @@ function setActiveCategory(categoryId) {
 // Appels dans l'ordre logique
 getCategories(); // Charger et afficher les catégories d'abord
 getData(); // Charger les travaux ensuite
+
+// ***********************************
+// Code pour gérer l'étape 2.2 avec le login
+// ***********************************
+
+// Gestion de l'événement pour le formulaire de login
+const loginForm = document.getElementById("loginForm");
+const errorMessage = document.getElementById("errorMessage");
+
+if (loginForm) {
+  loginForm.addEventListener("submit", async function (event) {
+    event.preventDefault(); // Empêche le rechargement de la page
+
+    // Récupération des valeurs des champs
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+      // requête API
+      const response = await fetch("http://localhost:5678/api/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        // Si la ce n'est pas ce qui est attendu -> message d'erreur :
+        errorMessage.textContent =
+          "Erreur dans l’identifiant ou le mot de passe";
+        errorMessage.style.display = "block";
+        return;
+      }
+
+      // Si la connexion est réussie, récupérer le token
+      const data = await response.json();
+      const token = data.token;
+
+      // Stockage du token dans localStorage
+      localStorage.setItem("token", token);
+
+      // Redirection vers la page d'accueil
+      window.location.href = "index.html";
+    } catch (error) {
+      // Affichage d'une erreur générique en cas de problème
+      errorMessage.textContent =
+        "Une erreur s'est produite. Veuillez réessayer.";
+      errorMessage.style.display = "block";
+    }
+  });
+}
+
+// ***********************************
+// Code pour gérer l'application
+// ***********************************
+
+// Sélection des éléments communs de la modale partagée
+const sharedModal = document.getElementById("sharedModal"); // Une seule modale partagée
+const closeSharedModal = document.getElementById("closeSharedModal"); // Bouton pour fermer la modale
+const editContent = document.getElementById("editContent"); // Contenu de la section "Modifier"
+const addPhotoContent = document.getElementById("addPhotoContent"); // Contenu de la section "Ajouter une photo"
+const modalGallery = document.querySelector(".modal-gallery"); // Galerie photo
+const addPhotoForm = document.getElementById("addPhotoForm"); // Formulaire d'ajout de photo
+const photoCategory = document.getElementById("photoCategory"); // Menu déroulant des catégories
+
+// Bouton "Modifier" (ouvre la galerie photo)
+editButton.addEventListener("click", () => {
+  showEditContent(); // Afficher le contenu pour "Modifier"
+  sharedModal.classList.remove("hidden"); // Afficher la modale
+  loadModalGallery(); // Charger les projets dans la galerie
+});
+
+// Bouton "Ajouter une photo" (ouvre le formulaire d'ajout)
+addPhotoButton.addEventListener("click", () => {
+  showAddPhotoContent(); // Afficher le contenu pour "Ajouter une photo"
+  loadCategories(); // Charger les catégories dans le menu déroulant
+});
+
+// Fermer la modale
+closeSharedModal.addEventListener("click", () => {
+  sharedModal.classList.add("hidden");
+});
+
+// Fermer la modale en cliquant en dehors
+sharedModal.addEventListener("click", (event) => {
+  if (event.target === sharedModal) {
+    sharedModal.classList.add("hidden");
+  }
+});
+
+// ***********************************
+// Fonctions pour basculer entre les contenus
+// ***********************************
+
+function showEditContent() {
+  editContent.classList.remove("hidden"); // Afficher le contenu "Modifier"
+  addPhotoContent.classList.add("hidden"); // Masquer le contenu "Ajouter une photo"
+}
+
+function showAddPhotoContent() {
+  addPhotoContent.classList.remove("hidden"); // Afficher le contenu "Ajouter une photo"
+  editContent.classList.add("hidden"); // Masquer le contenu "Modifier"
+}
+
+// ***********************************
+// Gestion du bouton flèche pour revenir à la galerie photo
+// ***********************************
+
+const backToGalleryButton = document.getElementById("backToGallery");
+
+backToGalleryButton.addEventListener("click", () => {
+  showEditContent(); // Basculer vers le contenu de la galerie photo
+});
+
+// ***********************************
+// Charger les projets dans la galerie
+// ***********************************
+
+async function loadModalGallery() {
+  try {
+    const response = await fetch("http://localhost:5678/api/works");
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des projets.");
+    }
+
+    const projects = await response.json();
+
+    // Vider la galerie avant d'ajouter les projets
+    modalGallery.innerHTML = "";
+
+    projects.forEach((project) => {
+      const figure = document.createElement("figure");
+      const img = document.createElement("img");
+      img.src = project.imageUrl;
+      img.alt = project.title;
+      figure.appendChild(img);
+      modalGallery.appendChild(figure);
+    });
+  } catch (error) {
+    console.error("Erreur : ", error.message);
+  }
+}
+
+// ***********************************
+// Charger les catégories pour le formulaire
+// ***********************************
+
+async function loadCategories() {
+  try {
+    const response = await fetch("http://localhost:5678/api/categories");
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des catégories.");
+    }
+
+    const categories = await response.json();
+
+    // Vider les options existantes
+    photoCategory.innerHTML =
+      '<option value="" disabled selected>Catégorie</option>';
+
+    // Ajouter les catégories
+    categories.forEach((category) => {
+      const option = document.createElement("option");
+      option.value = category.id;
+      option.textContent = category.name;
+      photoCategory.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erreur : ", error.message);
+  }
+}
+
+// ***********************************
+// Gérer la soumission du formulaire d'ajout de photo
+// ***********************************
+
+addPhotoForm.addEventListener("submit", async (event) => {
+  event.preventDefault(); // Empêcher le rechargement de la page
+
+  const fileInput = document.getElementById("photoUpload");
+  const title = document.getElementById("photoTitle").value;
+  const categoryId = document.getElementById("photoCategory").value;
+
+  if (!fileInput.files[0]) {
+    alert("Veuillez ajouter une photo.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", fileInput.files[0]);
+  formData.append("title", title);
+  formData.append("category", categoryId);
+
+  try {
+    const response = await fetch("http://localhost:5678/api/works", {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (response.ok) {
+      alert("Photo ajoutée avec succès !");
+      sharedModal.classList.add("hidden");
+      addPhotoForm.reset();
+    } else {
+      throw new Error("Erreur lors de l'ajout de la photo.");
+    }
+  } catch (error) {
+    console.error("Erreur : ", error.message);
+  }
+});
