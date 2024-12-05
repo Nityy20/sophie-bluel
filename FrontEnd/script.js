@@ -149,17 +149,20 @@ if (loginForm) {
           "Erreur dans l’identifiant ou le mot de passe";
         errorMessage.style.display = "block";
         return;
+      } else {
+        // Si la connexion est réussie, récupérer le token
+        const data = await response.json();
+        const token = data.token;
+        console.log(data);
+        console.log(token);
+
+        // Stockage du token dans localStorage
+        sessionStorage.setItem("token", token);
+        console.log(sessionStorage.getItem("token"));
+
+        // Redirection vers la page d'accueil
+        window.location.href = "index.html";
       }
-
-      // Si la connexion est réussie, récupérer le token
-      const data = await response.json();
-      const token = data.token;
-
-      // Stockage du token dans localStorage
-      localStorage.setItem("token", token);
-
-      // Redirection vers la page d'accueil
-      window.location.href = "index.html";
     } catch (error) {
       // Affichage d'une erreur générique en cas de problème
       errorMessage.textContent =
@@ -315,7 +318,7 @@ addPhotoForm.addEventListener("submit", async (event) => {
       method: "POST",
       body: formData,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
       },
     });
 
