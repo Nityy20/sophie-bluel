@@ -110,9 +110,82 @@ function setActiveCategory(categoryId) {
   }
 }
 
+function checkLoginStatus() {
+  const token = sessionStorage.getItem("token"); // Récupère le token
+  const editButton = document.getElementById("editButton"); // Bouton Modifier
+
+  if (!editButton) {
+    console.warn("Le bouton Modifier n'existe pas dans le DOM.");
+    return; // Arrêter la fonction si le bouton n'est pas trouvé
+  }
+
+  if (token) {
+    editButton.style.display = "inline-block"; // Affiche le bouton si connecté
+  } else {
+    editButton.style.display = "none"; // Cache le bouton sinon
+  }
+}
+
+function updateLoginButton() {
+  const loginButton = document.getElementById("loginButton"); // Bouton Login
+
+  if (!loginButton) {
+    console.warn("Le bouton Login n'existe pas dans le DOM.");
+    return;
+  }
+
+  const token = sessionStorage.getItem("token"); // Vérifie si un token est présent
+
+  if (token) {
+    loginButton.textContent = "Logout"; // Change le texte du bouton
+    loginButton.href = "#"; // Empêche la redirection vers la page de login
+    loginButton.addEventListener("click", handleLogout); // Associe l'événement de déconnexion
+  } else {
+    loginButton.textContent = "Login"; // Remet le texte à "Login"
+    loginButton.href = "login.html"; // Redirige vers la page de login
+    loginButton.removeEventListener("click", handleLogout); // Supprime l'événement logout
+  }
+}
+
+// Gérer la déconnexion
+function handleLogout(event) {
+  event.preventDefault(); // Empêche le comportement par défaut du lien
+  sessionStorage.removeItem("token"); // Supprime le token
+  alert("Vous avez été déconnecté.");
+  updateLoginButton(); // Met à jour le bouton
+  window.location.reload(); // Recharge la page pour actualiser l'état
+}
+
+// fonction pour la préview des photos dans la modale
+function setupPhotoPreview() {
+  const fileInput = document.getElementById("photoUpload");
+  const photoPreview = document.getElementById("photoPreview");
+
+  fileInput.addEventListener("change", function () {
+    const file = fileInput.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        photoPreview.style.backgroundImage = `url(${event.target.result})`;
+        photoPreview.style.display = "block"; // Affiche la prévisualisation
+      };
+
+      reader.readAsDataURL(file); // Lit le fichier comme URL
+    } else {
+      photoPreview.style.backgroundImage = "none";
+      photoPreview.style.display = "none"; // Masque la prévisualisation
+    }
+  });
+}
+
 // Appels dans l'ordre logique
-getCategories(); // Charger et afficher les catégories d'abord
-getData(); // Charger les travaux ensuite
+getCategories(); // Charger les catégories
+getData(); // Charger les projets
+checkLoginStatus(); // Vérifie l'état de connexion
+updateLoginButton(); // Mettre à jour le bouton Login/Logout
+setupPhotoPreview(); // Configurer la prévisualisation des photos
 
 // ***********************************
 // Code pour gérer l'étape 2.2 avec le login
@@ -132,6 +205,7 @@ if (loginForm) {
 
     try {
       // requête API
+      // test avec : alert("toto");
       const response = await fetch("http://localhost:5678/api/users/login", {
         method: "POST",
         headers: {
@@ -201,12 +275,14 @@ addPhotoButton.addEventListener("click", () => {
 // Fermer la modale
 closeSharedModal.addEventListener("click", () => {
   sharedModal.classList.add("hidden");
+  window.location.reload(); // Rafraîchir la page
 });
 
 // Fermer la modale en cliquant en dehors
 sharedModal.addEventListener("click", (event) => {
   if (event.target === sharedModal) {
     sharedModal.classList.add("hidden");
+    window.location.reload(); // Rafraîchir la page
   }
 });
 
@@ -247,19 +323,30 @@ async function loadModalGallery() {
 
     const projects = await response.json();
 
-    // Vider la galerie avant d'ajouter les projets
-    modalGallery.innerHTML = "";
+    const modalGallery = document.querySelector(".modal-gallery");
+    modalGallery.innerHTML = ""; // Vider la galerie avant de la remplir
 
     projects.forEach((project) => {
-      const figure = document.createElement("figure");
-      const img = document.createElement("img");
-      img.src = project.imageUrl;
-      img.alt = project.title;
-      figure.appendChild(img);
-      modalGallery.appendChild(figure);
+      const photoItem = document.createElement("div");
+      photoItem.classList.add("photo-item");
+      photoItem.dataset.id = project.id; // Ajoute l'ID du projet pour la suppression
+
+      const image = document.createElement("img");
+      image.src = project.imageUrl;
+      image.alt = project.title;
+
+      // Bouton de suppression
+      const deleteButton = document.createElement("button");
+      deleteButton.classList.add("delete-photo");
+      deleteButton.dataset.id = project.id; // Stocke l'ID pour la suppression
+      deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>'; // Icône poubelle
+
+      photoItem.appendChild(image);
+      photoItem.appendChild(deleteButton);
+      modalGallery.appendChild(photoItem);
     });
   } catch (error) {
-    console.error("Erreur : ", error.message);
+    console.error("Erreur :", error.message);
   }
 }
 
@@ -297,7 +384,7 @@ async function loadCategories() {
 // ***********************************
 
 addPhotoForm.addEventListener("submit", async (event) => {
-  event.preventDefault(); // Empêcher le rechargement de la page
+  event.preventDefault(); // Empêche le rechargement de la page
 
   const fileInput = document.getElementById("photoUpload");
   const title = document.getElementById("photoTitle").value;
@@ -324,8 +411,9 @@ addPhotoForm.addEventListener("submit", async (event) => {
 
     if (response.ok) {
       alert("Photo ajoutée avec succès !");
-      sharedModal.classList.add("hidden");
-      addPhotoForm.reset();
+      sharedModal.classList.add("hidden"); // Ferme la modale
+      addPhotoForm.reset(); // Réinitialise le formulaire
+      window.location.reload(); // Rafraîchit la page
     } else {
       throw new Error("Erreur lors de l'ajout de la photo.");
     }
@@ -333,3 +421,38 @@ addPhotoForm.addEventListener("submit", async (event) => {
     console.error("Erreur : ", error.message);
   }
 });
+
+document
+  .querySelector(".modal-gallery")
+  .addEventListener("click", async (event) => {
+    const deleteButton = event.target.closest(".delete-photo");
+    if (deleteButton) {
+      const photoId = deleteButton.dataset.id; // Récupère l'ID de la photo
+      const confirmDelete = confirm(
+        "Êtes-vous sûr de vouloir supprimer cette photo ?"
+      );
+      if (!confirmDelete) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:5678/api/works/${photoId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          alert("Photo supprimée avec succès !");
+          deleteButton.closest(".photo-item").remove(); // Supprime l'élément de la galerie de la modale
+        } else {
+          throw new Error("Erreur lors de la suppression de la photo.");
+        }
+      } catch (error) {
+        console.error("Erreur :", error.message);
+        alert("Impossible de supprimer la photo. Veuillez réessayer.");
+      }
+    }
+  });

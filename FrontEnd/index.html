@@ -24,7 +24,7 @@
         <ul>
           <li>projets</li>
           <li>contact</li>
-          <li><a href="login.html">login</a></li>
+          <li><a href="login.html" id="loginButton">login</a></li>
           <li><img src="./assets/icons/instagram.png" alt="Instagram" /></li>
         </ul>
       </nav>
@@ -137,6 +137,9 @@
               <h3>Ajout photo</h3>
               <form id="addPhotoForm">
                 <div class="upload-section">
+                  <!-- Conteneur pour la prévisualisation -->
+                  <div id="photoPreview" class="photo-preview"></div>
+                  <!-- Champ d'upload -->
                   <label for="photoUpload" class="upload-label">
                     <i class="fa-solid fa-image"></i>
                     <span>+ Ajouter photo</span>
@@ -149,6 +152,7 @@
                   />
                   <p>jpg, png : 4mo max</p>
                 </div>
+
                 <!-- Champ Titre -->
                 <label for="photoTitle">Titre</label>
                 <input type="text" id="photoTitle" name="title" required />
