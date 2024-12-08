@@ -126,10 +126,10 @@ function checkLoginStatus() {
   }
 }
 
-function updateLoginButton() {
-  const loginButton = document.getElementById("loginButton"); // Bouton Login
+function updateLoginPage() {
+  const loginPage = document.getElementById("loginPage"); // Bouton Login
 
-  if (!loginButton) {
+  if (!loginPage) {
     console.warn("Le bouton Login n'existe pas dans le DOM.");
     return;
   }
@@ -137,13 +137,13 @@ function updateLoginButton() {
   const token = sessionStorage.getItem("token"); // Vérifie si un token est présent
 
   if (token) {
-    loginButton.textContent = "Logout"; // Change le texte du bouton
-    loginButton.href = "#"; // Empêche la redirection vers la page de login
-    loginButton.addEventListener("click", handleLogout); // Associe l'événement de déconnexion
+    loginPage.textContent = "Logout"; // Change le texte du bouton
+    loginPage.href = "#"; // Empêche la redirection vers la page de login
+    loginPage.addEventListener("click", handleLogout); // Associe l'événement de déconnexion
   } else {
-    loginButton.textContent = "Login"; // Remet le texte à "Login"
-    loginButton.href = "login.html"; // Redirige vers la page de login
-    loginButton.removeEventListener("click", handleLogout); // Supprime l'événement logout
+    loginPage.textContent = "Login"; // Remet le texte à "Login"
+    loginPage.href = "login.html"; // Redirige vers la page de login
+    loginPage.removeEventListener("click", handleLogout); // Supprime l'événement logout
   }
 }
 
@@ -161,30 +161,32 @@ function setupPhotoPreview() {
   const fileInput = document.getElementById("photoUpload");
   const photoPreview = document.getElementById("photoPreview");
 
-  fileInput.addEventListener("change", function () {
-    const file = fileInput.files[0];
+  if (fileInput) {
+    fileInput.addEventListener("change", function () {
+      const file = fileInput.files[0];
 
-    if (file) {
-      const reader = new FileReader();
+      if (file) {
+        const reader = new FileReader();
 
-      reader.onload = function (event) {
-        photoPreview.style.backgroundImage = `url(${event.target.result})`;
-        photoPreview.style.display = "block"; // Affiche la prévisualisation
-      };
+        reader.onload = function (event) {
+          photoPreview.style.backgroundImage = `url(${event.target.result})`;
+          photoPreview.style.display = "block"; // Affiche la prévisualisation
+        };
 
-      reader.readAsDataURL(file); // Lit le fichier comme URL
-    } else {
-      photoPreview.style.backgroundImage = "none";
-      photoPreview.style.display = "none"; // Masque la prévisualisation
-    }
-  });
+        reader.readAsDataURL(file); // Lit le fichier comme URL
+      } else {
+        photoPreview.style.backgroundImage = "none";
+        photoPreview.style.display = "none"; // Masque la prévisualisation
+      }
+    });
+  }
 }
 
 // Appels dans l'ordre logique
 getCategories(); // Charger les catégories
 getData(); // Charger les projets
 checkLoginStatus(); // Vérifie l'état de connexion
-updateLoginButton(); // Mettre à jour le bouton Login/Logout
+updateLoginPage(); // Mettre à jour le bouton Login/Logout
 setupPhotoPreview(); // Configurer la prévisualisation des photos
 
 // ***********************************
@@ -192,13 +194,12 @@ setupPhotoPreview(); // Configurer la prévisualisation des photos
 // ***********************************
 
 // Gestion de l'événement pour le formulaire de login
-const loginForm = document.getElementById("loginForm");
+const loginButton = document.getElementById("loginButton");
 const errorMessage = document.getElementById("errorMessage");
 
-if (loginForm) {
-  loginForm.addEventListener("submit", async function (event) {
+if (loginButton) {
+  loginButton.addEventListener("click", async function (event) {
     event.preventDefault(); // Empêche le rechargement de la page
-
     // Récupération des valeurs des champs
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -238,7 +239,7 @@ if (loginForm) {
         window.location.href = "index.html";
       }
     } catch (error) {
-      // Affichage d'une erreur générique en cas de problème
+      // erreur générique en cas de problème
       errorMessage.textContent =
         "Une erreur s'est produite. Veuillez réessayer.";
       errorMessage.style.display = "block";
@@ -258,33 +259,43 @@ const addPhotoContent = document.getElementById("addPhotoContent"); // Contenu d
 const modalGallery = document.querySelector(".modal-gallery"); // Galerie photo
 const addPhotoForm = document.getElementById("addPhotoForm"); // Formulaire d'ajout de photo
 const photoCategory = document.getElementById("photoCategory"); // Menu déroulant des catégories
+const editButton = document.getElementById("editButton"); // Bouton Modifier
+const addPhotoButton = document.getElementById("addPhotoButton");
 
 // Bouton "Modifier" (ouvre la galerie photo)
-editButton.addEventListener("click", () => {
-  showEditContent(); // Afficher le contenu pour "Modifier"
-  sharedModal.classList.remove("hidden"); // Afficher la modale
-  loadModalGallery(); // Charger les projets dans la galerie
-});
+if (editButton) {
+  editButton.addEventListener("click", () => {
+    showEditContent(); // Afficher le contenu pour "Modifier"
+    sharedModal.classList.remove("hidden"); // Afficher la modale
+    loadModalGallery(); // Charger les projets dans la galerie
+  });
+}
 
 // Bouton "Ajouter une photo" (ouvre le formulaire d'ajout)
-addPhotoButton.addEventListener("click", () => {
-  showAddPhotoContent(); // Afficher le contenu pour "Ajouter une photo"
-  loadCategories(); // Charger les catégories dans le menu déroulant
-});
+if (addPhotoButton) {
+  addPhotoButton.addEventListener("click", () => {
+    showAddPhotoContent(); // Afficher le contenu pour "Ajouter une photo"
+    loadCategories(); // Charger les catégories dans le menu déroulant
+  });
+}
 
 // Fermer la modale
-closeSharedModal.addEventListener("click", () => {
-  sharedModal.classList.add("hidden");
-  window.location.reload(); // Rafraîchir la page
-});
-
-// Fermer la modale en cliquant en dehors
-sharedModal.addEventListener("click", (event) => {
-  if (event.target === sharedModal) {
+if (closeSharedModal) {
+  closeSharedModal.addEventListener("click", () => {
     sharedModal.classList.add("hidden");
     window.location.reload(); // Rafraîchir la page
-  }
-});
+  });
+}
+
+// Fermer la modale en cliquant en dehors
+if (sharedModal) {
+  sharedModal.addEventListener("click", (event) => {
+    if (event.target === sharedModal) {
+      sharedModal.classList.add("hidden");
+      window.location.reload(); // Rafraîchir la page
+    }
+  });
+}
 
 // ***********************************
 // Fonctions pour basculer entre les contenus
@@ -306,9 +317,11 @@ function showAddPhotoContent() {
 
 const backToGalleryButton = document.getElementById("backToGallery");
 
-backToGalleryButton.addEventListener("click", () => {
-  showEditContent(); // Basculer vers le contenu de la galerie photo
-});
+if (backToGalleryButton) {
+  backToGalleryButton.addEventListener("click", () => {
+    showEditContent(); // Basculer vers le contenu de la galerie photo
+  });
+}
 
 // ***********************************
 // Charger les projets dans la galerie
@@ -383,48 +396,49 @@ async function loadCategories() {
 // Gérer la soumission du formulaire d'ajout de photo
 // ***********************************
 
-addPhotoForm.addEventListener("submit", async (event) => {
-  event.preventDefault(); // Empêche le rechargement de la page
+if (addPhotoForm) {
+  addPhotoForm.addEventListener("submit", async (event) => {
+    event.preventDefault(); // Empêche le rechargement de la page
 
-  const fileInput = document.getElementById("photoUpload");
-  const title = document.getElementById("photoTitle").value;
-  const categoryId = document.getElementById("photoCategory").value;
+    const fileInput = document.getElementById("photoUpload");
+    const title = document.getElementById("photoTitle").value;
+    const categoryId = document.getElementById("photoCategory").value;
 
-  if (!fileInput.files[0]) {
-    alert("Veuillez ajouter une photo.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("image", fileInput.files[0]);
-  formData.append("title", title);
-  formData.append("category", categoryId);
-
-  try {
-    const response = await fetch("http://localhost:5678/api/works", {
-      method: "POST",
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      },
-    });
-
-    if (response.ok) {
-      alert("Photo ajoutée avec succès !");
-      sharedModal.classList.add("hidden"); // Ferme la modale
-      addPhotoForm.reset(); // Réinitialise le formulaire
-      window.location.reload(); // Rafraîchit la page
-    } else {
-      throw new Error("Erreur lors de l'ajout de la photo.");
+    if (!fileInput.files[0]) {
+      alert("Veuillez ajouter une photo.");
+      return;
     }
-  } catch (error) {
-    console.error("Erreur : ", error.message);
-  }
-});
 
-document
-  .querySelector(".modal-gallery")
-  .addEventListener("click", async (event) => {
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+    formData.append("title", title);
+    formData.append("category", categoryId);
+
+    try {
+      const response = await fetch("http://localhost:5678/api/works", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.ok) {
+        alert("Photo ajoutée avec succès !");
+        sharedModal.classList.add("hidden"); // Ferme la modale
+        addPhotoForm.reset(); // Réinitialise le formulaire
+        window.location.reload(); // Rafraîchit la page
+      } else {
+        throw new Error("Erreur lors de l'ajout de la photo.");
+      }
+    } catch (error) {
+      console.error("Erreur : ", error.message);
+    }
+  });
+}
+
+if (modalGallery) {
+  modalGallery.addEventListener("click", async (event) => {
     const deleteButton = event.target.closest(".delete-photo");
     if (deleteButton) {
       const photoId = deleteButton.dataset.id; // Récupère l'ID de la photo
@@ -456,3 +470,4 @@ document
       }
     }
   });
+}
