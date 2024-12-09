@@ -152,7 +152,7 @@ function handleLogout(event) {
   event.preventDefault(); // Empêche le comportement par défaut du lien
   sessionStorage.removeItem("token"); // Supprime le token
   alert("Vous avez été déconnecté.");
-  updateLoginButton(); // Met à jour le bouton
+  updateLoginPage(); // Met à jour le bouton
   window.location.reload(); // Recharge la page pour actualiser l'état
 }
 
@@ -283,7 +283,6 @@ if (addPhotoButton) {
 if (closeSharedModal) {
   closeSharedModal.addEventListener("click", () => {
     sharedModal.classList.add("hidden");
-    window.location.reload(); // Rafraîchir la page
   });
 }
 
@@ -292,7 +291,6 @@ if (sharedModal) {
   sharedModal.addEventListener("click", (event) => {
     if (event.target === sharedModal) {
       sharedModal.classList.add("hidden");
-      window.location.reload(); // Rafraîchir la page
     }
   });
 }
@@ -424,10 +422,28 @@ if (addPhotoForm) {
       });
 
       if (response.ok) {
+        const newProject = await response.json(); // Récupérer les détails du projet ajouté
         alert("Photo ajoutée avec succès !");
-        sharedModal.classList.add("hidden"); // Ferme la modale
-        addPhotoForm.reset(); // Réinitialise le formulaire
-        window.location.reload(); // Rafraîchit la page
+
+        // Ajouter dynamiquement le nouveau projet dans la galerie
+        const gallery = document.querySelector(".gallery");
+        const newFigure = document.createElement("figure");
+        const image = document.createElement("img");
+        image.src = newProject.imageUrl;
+        image.alt = newProject.title;
+
+        const figcaption = document.createElement("figcaption");
+        figcaption.textContent = newProject.title;
+
+        newFigure.appendChild(image);
+        newFigure.appendChild(figcaption);
+        newFigure.dataset.category = newProject.categoryId;
+
+        gallery.appendChild(newFigure);
+
+        // Réinitialiser et fermer la modale
+        sharedModal.classList.add("hidden");
+        addPhotoForm.reset();
       } else {
         throw new Error("Erreur lors de l'ajout de la photo.");
       }
@@ -460,7 +476,7 @@ if (modalGallery) {
 
         if (response.ok) {
           alert("Photo supprimée avec succès !");
-          deleteButton.closest(".photo-item").remove(); // Supprime l'élément de la galerie de la modale
+          window.location.reload(); // Rafraîchit la page après suppression
         } else {
           throw new Error("Erreur lors de la suppression de la photo.");
         }
