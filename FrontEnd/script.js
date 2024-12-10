@@ -62,7 +62,7 @@ async function getData() {
       figure.appendChild(image);
 
       figcaption = document.createElement("figcaption"); //création du figcaption
-      figcaption.innerHTML = json[i].title; //concaténation on ajoute la valeur du compteur i à la chaine de caractères toto
+      figcaption.innerHTML = json[i].title; //concaténation on ajoute la valeur du compteur i à la chaine de caractères "toto"
       figure.appendChild(figcaption);
 
       figure.dataset.category = json[i].categoryId; // Récupère l'ID pour filtrer les éléments plus tard
@@ -190,7 +190,7 @@ updateLoginPage(); // Mettre à jour le bouton Login/Logout
 setupPhotoPreview(); // Configurer la prévisualisation des photos
 
 // ***********************************
-// Code pour gérer l'étape 2.2 avec le login
+// Étape 2.2 avec le login
 // ***********************************
 
 // Gestion de l'événement pour le formulaire de login
@@ -231,7 +231,7 @@ if (loginButton) {
         console.log(data);
         console.log(token);
 
-        // Stockage du token dans localStorage
+        // Stockage du token dans sessionStorage
         sessionStorage.setItem("token", token);
         console.log(sessionStorage.getItem("token"));
 
@@ -476,7 +476,7 @@ if (modalGallery) {
 
         if (response.ok) {
           alert("Photo supprimée avec succès !");
-          window.location.reload(); // Rafraîchit la page après suppression
+          window.location.reload();
         } else {
           throw new Error("Erreur lors de la suppression de la photo.");
         }
