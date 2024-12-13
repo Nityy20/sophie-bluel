@@ -55,19 +55,20 @@ async function getData() {
 
     i = 0;
     while (json[i]) {
-      figure = document.createElement("figure"); //création balise
+      figure = document.createElement("figure");
+      figure.dataset.id = json[i].id; // Ajout de l'ID du projet comme data attribute
       image = document.createElement("img");
       image.setAttribute("src", json[i].imageUrl);
       image.setAttribute("alt", json[i].title);
       figure.appendChild(image);
 
-      figcaption = document.createElement("figcaption"); //création du figcaption
-      figcaption.innerHTML = json[i].title; //concaténation on ajoute la valeur du compteur i à la chaine de caractères "toto"
+      figcaption = document.createElement("figcaption");
+      figcaption.innerHTML = json[i].title;
       figure.appendChild(figcaption);
 
-      figure.dataset.category = json[i].categoryId; // Récupère l'ID pour filtrer les éléments plus tard
+      figure.dataset.category = json[i].categoryId;
 
-      document.getElementsByClassName("gallery")[0].appendChild(figure); //ajoute figure en enfant à gallery
+      document.getElementsByClassName("gallery")[0].appendChild(figure);
       i++;
     }
   } catch (error) {
@@ -126,6 +127,7 @@ function checkLoginStatus() {
   }
 }
 
+// bouton connexion en haut
 function updateLoginPage() {
   const loginPage = document.getElementById("loginPage"); // Bouton Login
 
@@ -149,7 +151,7 @@ function updateLoginPage() {
 
 // Gérer la déconnexion
 function handleLogout(event) {
-  event.preventDefault(); // Empêche le comportement par défaut du lien
+  event.preventDefault(); // Empêche la redirection vers la page login
   sessionStorage.removeItem("token"); // Supprime le token
   alert("Vous avez été déconnecté.");
   updateLoginPage(); // Met à jour le bouton
@@ -162,12 +164,13 @@ function setupPhotoPreview() {
   const photoPreview = document.getElementById("photoPreview");
 
   if (fileInput) {
+    // détecte le changement quand j'ajoute une image
     fileInput.addEventListener("change", function () {
       const file = fileInput.files[0];
 
       if (file) {
         const reader = new FileReader();
-
+        // quand j'ajoute une image je la charge sur le background de ma photo preview
         reader.onload = function (event) {
           photoPreview.style.backgroundImage = `url(${event.target.result})`;
           photoPreview.style.display = "block"; // Affiche la prévisualisation
@@ -197,6 +200,7 @@ setupPhotoPreview(); // Configurer la prévisualisation des photos
 const loginButton = document.getElementById("loginButton");
 const errorMessage = document.getElementById("errorMessage");
 
+// bouton se connecter
 if (loginButton) {
   loginButton.addEventListener("click", async function (event) {
     event.preventDefault(); // Empêche le rechargement de la page
@@ -324,6 +328,23 @@ if (backToGalleryButton) {
 // ***********************************
 // Charger les projets dans la galerie
 // ***********************************
+function deletePhotoFromGallery(photoId) {
+  // Suppression dans la modale
+  const modalItem = document.querySelector(
+    `.modal-gallery .photo-item[data-id="${photoId}"]`
+  );
+  if (modalItem) {
+    modalItem.remove();
+  }
+
+  // Suppression dans la page index
+  const indexItem = document.querySelector(
+    `.gallery figure[data-id="${photoId}"]`
+  );
+  if (indexItem) {
+    indexItem.remove();
+  }
+}
 
 async function loadModalGallery() {
   try {
@@ -349,8 +370,38 @@ async function loadModalGallery() {
       // Bouton de suppression
       const deleteButton = document.createElement("button");
       deleteButton.classList.add("delete-photo");
-      deleteButton.dataset.id = project.id; // Stocke l'ID pour la suppression
-      deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>'; // Icône poubelle
+      deleteButton.dataset.id = project.id;
+      deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+
+      deleteButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        const photoId = event.target.closest(".delete-photo").dataset.id;
+        const confirmDelete = confirm(
+          "Êtes-vous sûr de vouloir supprimer cette photo ?"
+        );
+        if (confirmDelete) {
+          try {
+            const response = await fetch(
+              `http://localhost:5678/api/works/${photoId}`,
+              {
+                method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                },
+              }
+            );
+            if (response.ok) {
+              deletePhotoFromGallery(photoId);
+              alert("Photo supprimée avec succès !");
+            } else {
+              throw new Error("Erreur lors de la suppression de la photo.");
+            }
+          } catch (error) {
+            console.error("Erreur lors de la suppression :", error.message);
+            alert("Impossible de supprimer la photo. Veuillez réessayer.");
+          }
+        }
+      });
 
       photoItem.appendChild(image);
       photoItem.appendChild(deleteButton);
@@ -374,11 +425,9 @@ async function loadCategories() {
 
     const categories = await response.json();
 
-    // Vider les options existantes
     photoCategory.innerHTML =
       '<option value="" disabled selected>Catégorie</option>';
 
-    // Ajouter les catégories
     categories.forEach((category) => {
       const option = document.createElement("option");
       option.value = category.id;
@@ -395,20 +444,47 @@ async function loadCategories() {
 // ***********************************
 
 if (addPhotoForm) {
+  const fileInput = document.getElementById("photoUpload");
+  const titleInput = document.getElementById("photoTitle");
+  const categoryInput = document.getElementById("photoCategory");
+  const submitButton = document.querySelector("#submitButton");
+
+  // Il faut que tous les champs soient remplis pour que le bouton valider s'active
+  const updateButtonState = () => {
+    const isFileSelected = fileInput.files.length > 0;
+    const isTitleFilled = titleInput.value.trim() !== "";
+    const isCategorySelected = categoryInput.value.trim() !== "";
+
+    if (isFileSelected && isTitleFilled && isCategorySelected) {
+      submitButton.disabled = false;
+      submitButton.removeAttribute("title");
+    } else {
+      submitButton.disabled = true;
+      submitButton.title =
+        "⚠️ Veuillez remplir tous les champs pour activer ce bouton.";
+    }
+  };
+
+  fileInput.addEventListener("change", updateButtonState);
+  titleInput.addEventListener("input", updateButtonState);
+  categoryInput.addEventListener("input", updateButtonState);
+
+  updateButtonState();
+
   addPhotoForm.addEventListener("submit", async (event) => {
-    event.preventDefault(); // Empêche le rechargement de la page
+    event.preventDefault();
 
-    const fileInput = document.getElementById("photoUpload");
-    const title = document.getElementById("photoTitle").value;
-    const categoryId = document.getElementById("photoCategory").value;
+    const file = fileInput.files[0];
+    const title = titleInput.value;
+    const categoryId = categoryInput.value;
 
-    if (!fileInput.files[0]) {
+    if (!file) {
       alert("Veuillez ajouter une photo.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("image", fileInput.files[0]);
+    formData.append("image", file);
     formData.append("title", title);
     formData.append("category", categoryId);
 
@@ -422,12 +498,12 @@ if (addPhotoForm) {
       });
 
       if (response.ok) {
-        const newProject = await response.json(); // Récupérer les détails du projet ajouté
+        const newProject = await response.json();
         alert("Photo ajoutée avec succès !");
 
-        // Ajouter dynamiquement le nouveau projet dans la galerie
         const gallery = document.querySelector(".gallery");
         const newFigure = document.createElement("figure");
+        newFigure.dataset.id = newProject.id;
         const image = document.createElement("img");
         image.src = newProject.imageUrl;
         image.alt = newProject.title;
@@ -441,49 +517,14 @@ if (addPhotoForm) {
 
         gallery.appendChild(newFigure);
 
-        // Réinitialiser et fermer la modale
         sharedModal.classList.add("hidden");
         addPhotoForm.reset();
+        updateButtonState();
       } else {
         throw new Error("Erreur lors de l'ajout de la photo.");
       }
     } catch (error) {
       console.error("Erreur : ", error.message);
-    }
-  });
-}
-
-if (modalGallery) {
-  modalGallery.addEventListener("click", async (event) => {
-    const deleteButton = event.target.closest(".delete-photo");
-    if (deleteButton) {
-      const photoId = deleteButton.dataset.id; // Récupère l'ID de la photo
-      const confirmDelete = confirm(
-        "Êtes-vous sûr de vouloir supprimer cette photo ?"
-      );
-      if (!confirmDelete) return;
-
-      try {
-        const response = await fetch(
-          `http://localhost:5678/api/works/${photoId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          alert("Photo supprimée avec succès !");
-          window.location.reload();
-        } else {
-          throw new Error("Erreur lors de la suppression de la photo.");
-        }
-      } catch (error) {
-        console.error("Erreur :", error.message);
-        alert("Impossible de supprimer la photo. Veuillez réessayer.");
-      }
     }
   });
 }

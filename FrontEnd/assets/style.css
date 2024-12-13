@@ -463,6 +463,11 @@ footer nav ul {
   display: block;
 }
 
+button:disabled {
+  background-color: #cccccc;
+  color: #666666;
+}
+
 .close-modal {
   position: absolute;
   top: 25px;
